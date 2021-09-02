@@ -33,12 +33,12 @@ body, .words-reel {
     background-color: honeydew;
 }
 
-.selected {
-    background-color: honeydew;
+.cursor {
+    background-color: lightgray;
 }
 
 .correct {
-    color: green;
+    color: grey ;
 }
 
 .incorrect {
