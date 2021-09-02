@@ -11,11 +11,14 @@ var curr_char = "";
 const loadedLists = new Event('loadedWordLists');
 var ready = false;
 
+var per_line = 0;
+var waiting = "";
+var line = [1, 0];
 // Having loaded the word lists, call function to handle further proceedings
-document.addEventListener('loadedWordLists', finishedLoading, false);
+document.addEventListener('loadedWordLists', finished_loading, false);
 
 // Keypress listener
-document.addEventListener("keydown", ({key}) => {
+document.addEventListener("keydown", async ({key}) => {
     if (!ready) {
         return;
     }
@@ -27,14 +30,28 @@ document.addEventListener("keydown", ({key}) => {
         if (characters[curr_index+1].offsetTop !== curr_line) {
             curr_line = characters[curr_index+1].offsetTop;
             console.log("Line change");
-            let line_length = curr_index+1;
-            printCurrLine(line_length);
-            for (let i = 0; i < line_length; i++) {
-                wordsReel.removeChild(characters[i]);
+            if (line[0] === 1) {
+                line[0]++;
+                line[1] = curr_index+1;
+            } else {
+                
+
+                for (let i = 0; i < line[1]; i++) {
+                    wordsReel.removeChild(characters[i]);
+                }
+                characters = characters.slice(line[1], characters.length);
+
+                let new_line = await get_line(waiting);
+                waiting = new_line[1];
+
+                for (let i = 0; i < new_line[0].length; i++) {
+                    const char_span = document.createElement('span');
+                    char_span.innerText = new_line[0][i];
+                    wordsReel.appendChild(char_span);
+                    characters.push(char_span);
+                }
+                curr_index -= line[1]-1;
             }
-            characters = characters.slice(line_length, characters.length-1);
-            printCurrLine(line_length);
-            curr_index = -1;
             
         }
         curr_char = characters[++curr_index]
@@ -49,7 +66,31 @@ document.addEventListener("keydown", ({key}) => {
     }
 })
 
-async function printCurrLine(line_length) {
+async function chars_per_line() {
+    wordsReel.classList.add('test');
+    let i = 1;
+    let span = document.createElement('span');
+    span.innerText = "a";
+    wordsReel.appendChild(span);
+    let first = span.offsetTop;
+    
+    while (span.offsetTop === first) {
+        span = document.createElement('span');
+        if (i%2 !== 0) {
+            span.innerText = " ";
+        } else {
+            span.innerText = "a"
+        }
+        wordsReel.appendChild(span);
+        i++;
+    }
+    wordsReel.innerHTML = '';
+    wordsReel.classList.remove('test');
+    console.log(i-1);
+    return (i-1);
+}
+
+async function print_curr_line(line_length) {
     let string_out = "";
     for (let i = 0; i < line_length; i++) {
         string_out += characters[i].innerText;
@@ -57,56 +98,95 @@ async function printCurrLine(line_length) {
     console.log(string_out);
 }
 
-async function getWordList(length) {
+async function get_word_list(length) {
     return fetch(`${length}.txt`).then(response => response.text());
 }
 
-async function loadLists() {
+async function load_lists() {
     console.log("Loading...")
-    short = (await getWordList('short')).split('\n');
-    medium = (await getWordList('medium')).split('\n');
-    long = (await getWordList('long')).split('\n');
+    short = (await get_word_list('short')).split('\n');
+    medium = (await get_word_list('medium')).split('\n');
+    long = (await get_word_list('long')).split('\n');
     document.dispatchEvent(loadedLists);   
 }
 
-async function finishedLoading() {
+async function finished_loading() {
     console.log("Loaded");
-    characters = await genInitReel();
+    per_line = await chars_per_line();
+    characters = await gen_first_lines();
     curr_char = characters[0];
     curr_char.classList.add('cursor');
     console.log("Ready")
     ready = true;
-    
 }
-async function genInitReel() {
-    wordsReel.value = null;
-    //console.log(words[Math.floor(Math.random() * words.length]);
 
-    var init_block = "";
-    for(let i = 0; i < 100; i++) {
-        let num = Math.floor(Math.random() * 11);
+async function get_word() {
+    let num = Math.floor(Math.random() * 11);
+        let word = "";
         //console.log(num);
         if (num <= 0.5) {
-            init_block += long[Math.floor(Math.random() * long.length)] + " ";
+            word = long[Math.floor(Math.random() * long.length)];
             //console.log("long added");
         }
         else if (num <= 3) {
-            init_block += medium[Math.floor(Math.random() * medium.length)] + " ";
+            word = medium[Math.floor(Math.random() * medium.length)];
             //console.log("medium added");
         }
         else {
-            init_block += short[Math.floor(Math.random() * short.length)] + " ";
+            word = short[Math.floor(Math.random() * short.length)];
             //console.log("short added");
         }
-    }
-    init_block = init_block.substring(0, init_block.length - 1);
-    init_block = init_block.split('').map((char) => {
-        const char_span = document.createElement('span');
-        char_span.innerText = char;
-        wordsReel.appendChild(char_span);
-        return char_span;
-    });
-    return init_block;
+    return word;
 }
 
-loadLists();
+async function get_line(start) {
+
+    let line = "";
+    let word = await get_word();;
+    let done = false;
+    if (start) {
+        line = start + " ";
+    }
+    while (!done) {
+        console.log(line);
+        if (line.length + word.length + 1 > per_line && line) {
+            console.log(`Word ${word} overran (${line.length + word.length + 1} > ${per_line})`)
+            done = true;
+        }
+        else {
+            line += word + " ";
+            word = await get_word();
+        }
+    }
+    console.log(line);
+    console.log(line.length);
+    console.log(per_line-line.length);
+    
+    return [line, word];
+}
+
+async function gen_first_lines() {
+    wordsReel.value = null;
+    var init_block = "";
+
+    let new_line = await get_line();
+    waiting = new_line[1];
+    init_block += new_line[0];
+    console.log(waiting);
+    for (let i = 0; i < 2; i++) {
+        new_line = await get_line(waiting);
+        init_block += new_line[0];
+        waiting = new_line[1];
+    }
+
+    init_block = init_block.substring(0, init_block.length).split('');
+    for (let i = 0; i < init_block.length; i++) {
+        const char_span = document.createElement('span');
+        char_span.innerText = init_block[i];
+        wordsReel.appendChild(char_span);
+        init_block[i] = char_span;
+    }
+    console.log(waiting);
+    return init_block;
+}
+load_lists();
