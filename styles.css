@@ -11,16 +11,8 @@ body {
     background-color:black;
 }
 
-body, .words-input {
+body, .words-reel {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-}
-
-.container {
-    background-color: seashell;
-    padding: 1rem;
-    border-radius: .5rem;
-    width: 700px;
-    max-width: 90%;
 }
 
 .timer {
@@ -30,27 +22,19 @@ body, .words-input {
     color:seashell;
     font-weight: bold;
 }
-.words-display {
-    margin-bottom: 1rem;
-    margin-left: calc(1rem + 2px);
-    margin-right: calc(1rem + 2px);
-}
 
-.words-input {
-    background-color: transparent;
-    border: 2px solid grey;
-    outline: none;
+.words-reel {
     width: 100%;
-    height: 8rem;
     margin: auto;
-    resize: none;
-    padding: .5rem 1rem;
-    font-size: 1rem;
+    font-size: 1.2rem;
     border-radius: .5rem;
+    padding: 1.5em;
+    max-width: 90%;
+    background-color: honeydew;
 }
 
-.words-input:focus {
-    border-color: black;
+.selected {
+    background-color: honeydew;
 }
 
 .correct {
