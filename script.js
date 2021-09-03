@@ -15,8 +15,10 @@ var per_line = 0;
 var waiting = "";
 var last_line = 0;
 
-// Having loaded the word lists, call function to handle further proceedings
+// Having loaded the word lists, call function to continue
 document.addEventListener('loadedWordLists', finished_loading, false);
+
+window.addEventListener('resize', on_resize);
 
 // Keypress listener
 document.addEventListener("keydown", async ({key}) => {
@@ -64,6 +66,17 @@ document.addEventListener("keydown", async ({key}) => {
         console.log(`${key} => ${curr_char.innerText}`);
     }
 })
+
+
+async function on_resize() {
+    console.log('Resized');
+    /*
+    ready = false;
+    per_line = await chars_per_line();
+    ready = true;
+    */
+}
+
 
 async function chars_per_line() {
     wordsReel.classList.add('test');
