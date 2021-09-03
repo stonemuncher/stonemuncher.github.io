@@ -13,7 +13,8 @@ var ready = false;
 
 var per_line = 0;
 var waiting = "";
-var line = [1, 0];
+var last_line = 0;
+
 // Having loaded the word lists, call function to handle further proceedings
 document.addEventListener('loadedWordLists', finished_loading, false);
 
@@ -24,23 +25,23 @@ document.addEventListener("keydown", async ({key}) => {
     }
     let curr_line = curr_char.offsetTop;
     if (key === curr_char.innerText) {
+
         curr_char.classList.add('correct');
         curr_char.classList.remove('cursor');
 
         if (characters[curr_index+1].offsetTop !== curr_line) {
             curr_line = characters[curr_index+1].offsetTop;
-            console.log("Line change");
-            if (line[0] === 1) {
-                line[0]++;
-                line[1] = curr_index+1;
-            } else {
-                
 
-                for (let i = 0; i < line[1]; i++) {
+            console.log("Line change");
+
+            if (curr_index > per_line) {
+                curr_index -= last_line;
+
+                for (let i = 0; i < last_line; i++) {
                     wordsReel.removeChild(characters[i]);
                 }
-                characters = characters.slice(line[1], characters.length);
-
+                
+                characters = characters.slice(last_line, characters.length);
                 let new_line = await get_line(waiting);
                 waiting = new_line[1];
 
@@ -50,25 +51,23 @@ document.addEventListener("keydown", async ({key}) => {
                     wordsReel.appendChild(char_span);
                     characters.push(char_span);
                 }
-                curr_index -= line[1]-1;
             }
-            
+            last_line = curr_index;
         }
         curr_char = characters[++curr_index]
         curr_char.classList.add('cursor');
-        
     }
 
     // else if (!key && curr_index >= )
     else if (LETTERS.includes(key)){
         // Process error and update values for letters
-        console.log(`${key} => ${curr_char.innerText}`)
+        console.log(`${key} => ${curr_char.innerText}`);
     }
 })
 
 async function chars_per_line() {
     wordsReel.classList.add('test');
-    let i = 1;
+    let i = 0;
     let span = document.createElement('span');
     span.innerText = "a";
     wordsReel.appendChild(span);
@@ -76,7 +75,7 @@ async function chars_per_line() {
     
     while (span.offsetTop === first) {
         span = document.createElement('span');
-        if (i%2 !== 0) {
+        if (i%2 === 0) {
             span.innerText = " ";
         } else {
             span.innerText = "a"
@@ -86,8 +85,8 @@ async function chars_per_line() {
     }
     wordsReel.innerHTML = '';
     wordsReel.classList.remove('test');
-    console.log(i-1);
-    return (i-1);
+    console.log(`Characters per line: ${i}`);
+    return (i);
 }
 
 async function print_curr_line(line_length) {
@@ -148,9 +147,9 @@ async function get_line(start) {
         line = start + " ";
     }
     while (!done) {
-        console.log(line);
+        //console.log(line);
         if (line.length + word.length + 1 > per_line && line) {
-            console.log(`Word ${word} overran (${line.length + word.length + 1} > ${per_line})`)
+            //console.log(`Word ${word} overran (${line.length + word.length + 1} > ${per_line})`)
             done = true;
         }
         else {
@@ -158,9 +157,8 @@ async function get_line(start) {
             word = await get_word();
         }
     }
-    console.log(line);
-    console.log(line.length);
-    console.log(per_line-line.length);
+    //console.log(line.length);
+    //console.log(per_line-line.length);
     
     return [line, word];
 }
@@ -172,7 +170,6 @@ async function gen_first_lines() {
     let new_line = await get_line();
     waiting = new_line[1];
     init_block += new_line[0];
-    console.log(waiting);
     for (let i = 0; i < 2; i++) {
         new_line = await get_line(waiting);
         init_block += new_line[0];
@@ -186,7 +183,6 @@ async function gen_first_lines() {
         wordsReel.appendChild(char_span);
         init_block[i] = char_span;
     }
-    console.log(waiting);
     return init_block;
 }
 load_lists();
