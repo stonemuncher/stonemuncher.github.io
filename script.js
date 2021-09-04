@@ -1,9 +1,6 @@
 const wordsReel = document.getElementById('wordsReel');
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz"
-var short = [];
-var medium = [];
-var long = [];
 
 var characters = [];
 var curr_index = 0;
@@ -15,6 +12,7 @@ var per_line = 0;
 var waiting = "";
 var last_line = 0;
 
+var word_list = {};
 // Having loaded the word lists, call function to continue
 document.addEventListener('loadedWordLists', finished_loading, false);
 
@@ -116,9 +114,18 @@ async function get_word_list(length) {
 
 async function load_lists() {
     console.log("Loading...")
-    short = (await get_word_list('short')).split('\n');
-    medium = (await get_word_list('medium')).split('\n');
-    long = (await get_word_list('long')).split('\n');
+    var short = (await get_word_list('short')).split('\n');
+    var medium = (await get_word_list('medium')).split('\n');
+    var long = (await get_word_list('long')).split('\n');
+    word_list["short"] = short;
+    word_list["medium"] = medium;
+    word_list["long"] = long;
+    for (const letter of LETTERS) {
+        word_list[letter] = {};
+        word_list[letter]['short'] = short.filter(word => word.includes(letter));
+        word_list[letter]['medium'] = medium.filter(word => word.includes(letter));
+        word_list[letter]['long'] = long.filter(word => word.includes(letter));
+    }
     document.dispatchEvent(loadedLists);   
 }
 
@@ -132,22 +139,54 @@ async function finished_loading() {
     ready = true;
 }
 
-async function get_word() {
-    let num = Math.floor(Math.random() * 11);
-        let word = "";
-        //console.log(num);
-        if (num <= 0.5) {
-            word = long[Math.floor(Math.random() * long.length)];
-            //console.log("long added");
-        }
-        else if (num <= 3) {
-            word = medium[Math.floor(Math.random() * medium.length)];
-            //console.log("medium added");
+async function get_word(required) {
+    const start = performance.now();
+    let word = "";
+    let word_length = "";
+    const num = Math.floor(Math.random() * 11);
+    //console.log(num);
+    if (num <= 0.5) {
+        word_length = "long";
+    }
+    else if (num <= 3) {
+        word_length = "medium";
+    }
+    else {
+        word_length = "short";
+    }
+    word_length = "long";
+    if (!required) {
+        word = word_list[word_length][Math.floor(Math.random() * word_list[word_length].length)]
+    } 
+    else {
+        let shortest = {"length": undefined, "letter":""};
+        required.forEach(letter => {
+            if ((word_list[letter][word_length].length < shortest["length"]) || !shortest["length"]) {
+                shortest["length"] = word_list[letter][word_length].length;
+                shortest["letter"] = letter;
+            }
+        });
+        console.log(shortest);
+        const possible = word_list[shortest["letter"]][word_length].filter(word => {
+            let add = true;
+            required.forEach(letter => {
+                if (!word.includes(letter)) {
+                    add = false;
+                }
+            })
+            return add;
+        });
+        if (possible.length) {
+            word = possible[Math.floor(Math.random() * possible.length)];
         }
         else {
-            word = short[Math.floor(Math.random() * short.length)];
-            //console.log("short added");
+            alert("none");
         }
+       
+    }
+    const end = performance.now();
+    const time = end - start;
+    console.log(word + ' ' + time);
     return word;
 }
 
