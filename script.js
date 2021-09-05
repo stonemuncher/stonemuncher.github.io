@@ -1,12 +1,14 @@
 const wordsReel = document.getElementById('wordsReel');
-
+const pausedMsg = document.getElementById('paused');
 const LETTERS = "abcdefghijklmnopqrstuvwxyz"
 
 var characters = [];
 var curr_index = 0;
 var curr_char = "";
 const loadedLists = new Event('loadedWordLists');
+
 var ready = false;
+var paused = false;
 
 var per_line = 0;
 var waiting = "";
@@ -23,9 +25,16 @@ document.addEventListener("keydown", async ({key}) => {
     if (!ready) {
         return;
     }
+    if (key == "Enter") {
+        paused = true;
+        pausedMsg.innerText = "Paused";
+    }
     let curr_line = curr_char.offsetTop;
     if (key === curr_char.innerText) {
-
+        if (paused) {
+            paused = !paused;
+            pausedMsg.innerText = "";
+        }
         curr_char.classList.add('correct');
         curr_char.classList.remove('cursor');
 
@@ -77,7 +86,7 @@ async function on_resize() {
 
 
 async function chars_per_line() {
-    wordsReel.classList.add('test');
+    wordsReel.classList.add('hidden');
     let i = 0;
     let span = document.createElement('span');
     span.innerText = "a";
@@ -95,7 +104,7 @@ async function chars_per_line() {
         i++;
     }
     wordsReel.innerHTML = '';
-    wordsReel.classList.remove('test');
+    wordsReel.classList.remove('hidden');
     console.log(`Characters per line: ${i}`);
     return (i);
 }
@@ -192,7 +201,7 @@ async function get_word(required) {
 }
 
 async function get_line(start) {
-    let required = undefined;
+    let required = ["b", "c"];
     let line = "";
     let word = await get_word(required);;
     let done = false;

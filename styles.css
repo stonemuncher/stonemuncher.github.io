@@ -16,7 +16,7 @@ body, .words-reel {
 }
 
 .words-reel {
-    font-size: 20px;
+    font-size: 24px;
     max-width: 60%;
     background-color: honeydew;
     /*
@@ -36,11 +36,11 @@ body, .words-reel {
     color: grey ;
 }
 
-.incorrect {
-    color: red;
-    text-decoration: underline;
+.hidden {
+        visibility: hidden;
 }
 
-.test {
-        visibility: hidden;
+.paused {
+    position:fixed;
+    top:1em;
 }
