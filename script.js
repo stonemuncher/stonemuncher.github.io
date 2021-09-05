@@ -159,30 +159,33 @@ async function get_word(required) {
         word = word_list[word_length][Math.floor(Math.random() * word_list[word_length].length)]
     } 
     else {
-        let shortest = {"length": undefined, "letter":""};
-        required.forEach(letter => {
-            if ((word_list[letter][word_length].length < shortest["length"]) || !shortest["length"]) {
-                shortest["length"] = word_list[letter][word_length].length;
-                shortest["letter"] = letter;
-            }
-        });
-        console.log(shortest);
-        const possible = word_list[shortest["letter"]][word_length].filter(word => {
-            let add = true;
-            required.forEach(letter => {
-                if (!word.includes(letter)) {
-                    add = false;
-                }
-            })
-            return add;
-        });
-        if (possible.length) {
+        if (required.length === 1) {
+            const possible = word_list[required[0]][word_length];
             word = possible[Math.floor(Math.random() * possible.length)];
+        } else {
+            let shortest = {"length": undefined, "letter":""};
+            required.forEach(letter => {
+                if ((word_list[letter][word_length].length < shortest["length"]) || !shortest["length"]) {
+                    shortest["length"] = word_list[letter][word_length].length;
+                    shortest["letter"] = letter;
+                }
+            });
+            const possible = word_list[shortest["letter"]][word_length].filter(word => {
+                let add = true;
+                required.forEach(letter => {
+                    if (!word.includes(letter)) {
+                        add = false;
+                    }
+                })
+                return add;
+            });
+            if (possible.length) {
+                word = possible[Math.floor(Math.random() * possible.length)];
+            }
+            else {
+                alert("none");
+            }
         }
-        else {
-            alert("none");
-        }
-       
     }
     const end = performance.now();
     const time = end - start;
@@ -191,26 +194,22 @@ async function get_word(required) {
 }
 
 async function get_line(start) {
-
+    let required = ["a", "z"]
     let line = "";
-    let word = await get_word();;
+    let word = await get_word(required);;
     let done = false;
     if (start) {
         line = start + " ";
     }
     while (!done) {
-        //console.log(line);
         if (line.length + word.length + 1 > per_line && line) {
-            //console.log(`Word ${word} overran (${line.length + word.length + 1} > ${per_line})`)
             done = true;
         }
         else {
             line += word + " ";
-            word = await get_word();
+            word = await get_word(required);
         }
     }
-    //console.log(line.length);
-    //console.log(per_line-line.length);
     
     return [line, word];
 }
