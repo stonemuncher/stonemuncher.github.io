@@ -154,7 +154,6 @@ async function get_word(required) {
     else {
         word_length = "short";
     }
-    word_length = "long";
     if (!required) {
         word = word_list[word_length][Math.floor(Math.random() * word_list[word_length].length)]
     } 
@@ -170,15 +169,14 @@ async function get_word(required) {
                     shortest["letter"] = letter;
                 }
             });
-            const possible = word_list[shortest["letter"]][word_length].filter(word => {
-                let add = true;
-                required.forEach(letter => {
-                    if (!word.includes(letter)) {
-                        add = false;
-                    }
-                })
-                return add;
+
+            let condition = '^'
+            required.forEach(letter => {
+                condition += `(?=.*${letter})`;
             });
+            condition = new RegExp(condition);
+
+            const possible = word_list[shortest["letter"]][word_length].filter(word => condition.test(word));
             if (possible.length) {
                 word = possible[Math.floor(Math.random() * possible.length)];
             }
@@ -194,7 +192,7 @@ async function get_word(required) {
 }
 
 async function get_line(start) {
-    let required = ["a", "z"]
+    let required = undefined;
     let line = "";
     let word = await get_word(required);;
     let done = false;
