@@ -44,3 +44,10 @@ body, .words-reel {
     position:fixed;
     top:1em;
 }
+
+.values {
+    position:absolute;
+    top:0;
+    left:0;
+    align-items: left;
+}

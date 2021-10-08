@@ -1,27 +1,36 @@
 const wordsReel = document.getElementById('wordsReel');
 const pausedMsg = document.getElementById('paused');
-const LETTERS = "abcdefghijklmnopqrstuvwxyz"
+const info = document.getElementById('values');
 
+const LETTERS = "abcdefghijklmnopqrstuvwxyz";
+
+var user_values = {};
 var characters = [];
 var curr_index = 0;
 var curr_char = "";
 const loadedLists = new Event('loadedWordLists');
 
 var ready = false;
-var paused = false;
+var paused = true;
+pausedMsg.innerText = "To start, just start typing!";
 
 var per_line = 0;
 var waiting = "";
 var last_line = 0;
 
+var last_time = 0;
 var word_list = {};
+
 // Having loaded the word lists, call function to continue
 document.addEventListener('loadedWordLists', finished_loading, false);
 
 window.addEventListener('resize', on_resize);
 
+window.onunload = save_values;
+
 // Keypress listener
 document.addEventListener("keydown", async ({key}) => {
+    console.clear();
     if (!ready) {
         return;
     }
@@ -32,9 +41,18 @@ document.addEventListener("keydown", async ({key}) => {
     let curr_line = curr_char.offsetTop;
     if (key === curr_char.innerText) {
         if (paused) {
-            paused = !paused;
+            paused = false;
+            last_time = performance.now();
             pausedMsg.innerText = "";
         }
+        else if (key in user_values) {
+            const time_delta = performance.now() - last_time;
+            last_time = performance.now();
+            let val = await sigmoid(time_delta/800)
+            info.innerText =  val + " " + time_delta;
+            user_values[key.toLowerCase()] *= 0.4 + val;
+        }
+
         curr_char.classList.add('correct');
         curr_char.classList.remove('cursor');
 
@@ -65,15 +83,39 @@ document.addEventListener("keydown", async ({key}) => {
         }
         curr_char = characters[++curr_index]
         curr_char.classList.add('cursor');
+
+        priner = []
+        for(const key in user_values) {
+            priner.push([key, user_values[key]]);
+        }
+
+        priner.sort(function(a, b) {
+            if(a[1] === b[1]) {
+                return 0;
+            }
+            else {
+                return (a[1] < b[1]) ? -1: 1;
+            }
+        });
+        priner.reverse();
+        priner = priner.slice(0, 5);
+        for (const item of priner) {
+            console.log(item[0] + " " + item[1]);
+        }
+        
     }
 
     // else if (!key && curr_index >= )
     else if (LETTERS.includes(key)){
+
         // Process error and update values for letters
-        console.log(`${key} => ${curr_char.innerText}`);
+        // console.log(`${key} => ${curr_char.innerText}`);
     }
 })
 
+async function sigmoid(x) {
+    return 1/(1+2.71828**(-x))
+}
 
 async function on_resize() {
     console.log('Resized');
@@ -84,6 +126,23 @@ async function on_resize() {
     */
 }
 
+async function save_values() {
+    for(letter of LETTERS) {
+        if (localStorage.getItem(letter)) {
+            localStorage.setItem(letter, user_values[letter]);
+        }
+    }
+}
+async function load_values() {
+    for(letter of LETTERS) {
+        if (localStorage.getItem(letter)) {
+            user_values[letter] = localStorage.getItem(letter);
+        }
+        else {
+            user_values[letter] = 1;
+        }
+    }
+}
 
 async function chars_per_line() {
     wordsReel.classList.add('hidden');
@@ -114,7 +173,7 @@ async function print_curr_line(line_length) {
     for (let i = 0; i < line_length; i++) {
         string_out += characters[i].innerText;
     }
-    console.log(string_out);
+    //console.log(string_out);
 }
 
 async function get_word_list(length) {
@@ -129,12 +188,23 @@ async function load_lists() {
     word_list["short"] = short;
     word_list["medium"] = medium;
     word_list["long"] = long;
+
+    test_saved = localStorage.getItem('a');
+    if (test_saved) {
+        await load_values();
+        console.log("Loaded localstorage objects")
+    }
     for (const letter of LETTERS) {
         word_list[letter] = {};
         word_list[letter]['short'] = short.filter(word => word.includes(letter));
         word_list[letter]['medium'] = medium.filter(word => word.includes(letter));
         word_list[letter]['long'] = long.filter(word => word.includes(letter));
+
+        if(!test_saved) {
+            user_values[letter] = 1
+        }
     }
+
     document.dispatchEvent(loadedLists);   
 }
 
@@ -180,6 +250,8 @@ async function get_word(required) {
             });
 
             let condition = '^'
+
+            required = required.filter(letter => letter !== shortest["letter"]);
             required.forEach(letter => {
                 condition += `(?=.*${letter})`;
             });
@@ -190,18 +262,19 @@ async function get_word(required) {
                 word = possible[Math.floor(Math.random() * possible.length)];
             }
             else {
+                // Handle the fact there are no words with the given requirements and word length
                 alert("none");
-            }
+            }   
         }
     }
     const end = performance.now();
     const time = end - start;
-    console.log(word + ' ' + time);
+    //console.log(word + ' ' + time);
     return word;
 }
 
 async function get_line(start) {
-    let required = ["b", "c"];
+    let required = undefined;
     let line = "";
     let word = await get_word(required);;
     let done = false;
