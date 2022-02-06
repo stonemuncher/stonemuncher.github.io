@@ -4,6 +4,7 @@ const info = document.getElementById('typed');
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
+var totals_history = [];
 var user_values = {};
 var words_typed = 0;
 var worst_five = [];
@@ -56,6 +57,12 @@ document.addEventListener("keydown", async ({ key }) => {
                 } else {
                         words_typed += 1;
                         localStorage.setItem("typed", words_typed);
+                        if (words_typed % 10 == 0) {
+                                let total = get_total();
+                                totals_history.push(total.toFixed(3));
+                                console.log(totals_history);
+                                localStorage.setItem("history", JSON.stringify(totals_history));
+                        }
                 }
 
                 curr_char.classList.add('correct');
@@ -130,6 +137,11 @@ async function save_values() {
         }
 }
 async function load_values() {
+        if (localStorage.getItem("history")) {
+                totals_history = JSON.parse(localStorage.getItem("history"));
+        } else {
+                localStorage.setItem("history", JSON.stringify(totals_history));
+        }
         if (localStorage.getItem("typed")) {
                 words_typed = Number(localStorage.getItem("typed"));
         }
@@ -271,6 +283,14 @@ async function get_word(required) {
         const time = end - start;
         //console.log(word + ' ' + time);
         return word;
+}
+
+function get_total() {
+        total = 0
+        for (const key in user_values) {
+                total += user_values[key];
+        }
+        return total;
 }
 
 async function get_line(start) {

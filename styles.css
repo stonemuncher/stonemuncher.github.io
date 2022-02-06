@@ -89,6 +89,8 @@ body, .words-reel {
         color: white;
     }
 
-#statscontent {
-        font-size: 2vw;
+.statsbody {
+        font-size: 1.2vw;
+        display: inline;
+        max-width: 80%;
 }
