@@ -4,8 +4,8 @@ const info = document.getElementById('typed');
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
-var totals_history = [];
 var user_values = {};
+var totals_history = [];
 var words_typed = 0;
 var worst_five = [];
 var characters = [];
@@ -60,7 +60,6 @@ document.addEventListener("keydown", async ({ key }) => {
                         if (words_typed % 10 == 0) {
                                 let total = get_total();
                                 totals_history.push(total.toFixed(3));
-                                console.log(totals_history);
                                 localStorage.setItem("history", JSON.stringify(totals_history));
                         }
                 }
@@ -104,9 +103,6 @@ document.addEventListener("keydown", async ({ key }) => {
                 values = reverse_merge(values);
 
                 worst_five = values.slice(0, 5);
-                for (const item of worst_five) {
-                        console.log(item[0] + " " + item[1]);
-                }
         }
 
         // else if (!key && curr_index >= )
@@ -303,7 +299,7 @@ async function get_line(start) {
         }
         while (!done) {
                 required = worst_five[Math.floor(Math.random() * 5)];
-                if (line.length + word.length + 1 > per_line && line) {
+                if (line.length + word.length > per_line && line) {
                         done = true;
                 }
                 else {
