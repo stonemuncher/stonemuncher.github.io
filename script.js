@@ -5,6 +5,7 @@ const info = document.getElementById('values');
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
 var user_values = {};
+var worst_five = [];
 var characters = [];
 var curr_index = 0;
 var curr_char = "";
@@ -45,7 +46,7 @@ document.addEventListener("keydown", async ({key}) => {
             last_time = performance.now();
             pausedMsg.innerText = "";
         }
-        else if (key in user_values) {
+        else if (key in user_values && key != " ") {
             const time_delta = performance.now() - last_time;
             last_time = performance.now();
             let val = await sigmoid(time_delta/800)
@@ -84,12 +85,12 @@ document.addEventListener("keydown", async ({key}) => {
         curr_char = characters[++curr_index]
         curr_char.classList.add('cursor');
 
-        priner = []
+        values = []
         for(const key in user_values) {
-            priner.push([key, user_values[key]]);
+            values.push([key, user_values[key]]);
         }
 
-        priner.sort(function(a, b) {
+        values.sort(function(a, b) {
             if(a[1] === b[1]) {
                 return 0;
             }
@@ -97,19 +98,18 @@ document.addEventListener("keydown", async ({key}) => {
                 return (a[1] < b[1]) ? -1: 1;
             }
         });
-        priner.reverse();
-        priner = priner.slice(0, 5);
-        for (const item of priner) {
+        values.reverse();
+        worst_five = values.slice(0, 5);
+        for (const item of worst_five) {
             console.log(item[0] + " " + item[1]);
         }
         
     }
 
     // else if (!key && curr_index >= )
-    else if (LETTERS.includes(key)){
-
-        // Process error and update values for letters
-        // console.log(`${key} => ${curr_char.innerText}`);
+    else if (LETTERS.includes(key) && curr_char.innerText != " "){
+        user_values[curr_char.innerText] += 0.2;
+        curr_char.classList.add("incorrect");
     }
 })
 
@@ -119,6 +119,7 @@ async function sigmoid(x) {
 
 async function on_resize() {
     console.log('Resized');
+    
     /*
     ready = false;
     per_line = await chars_per_line();
@@ -127,7 +128,7 @@ async function on_resize() {
 }
 
 async function save_values() {
-    for(letter of LETTERS) {
+    for(const letter of LETTERS) {
         if (localStorage.getItem(letter)) {
             localStorage.setItem(letter, user_values[letter]);
         }
@@ -136,10 +137,10 @@ async function save_values() {
 async function load_values() {
     for(letter of LETTERS) {
         if (localStorage.getItem(letter)) {
-            user_values[letter] = localStorage.getItem(letter);
+            user_values[letter] = Number(localStorage.getItem(letter));
         }
         else {
-            user_values[letter] = 1;
+            user_values[letter] = 0.5;
         }
     }
 }
@@ -201,7 +202,7 @@ async function load_lists() {
         word_list[letter]['long'] = long.filter(word => word.includes(letter));
 
         if(!test_saved) {
-            user_values[letter] = 1
+            user_values[letter] = Number(0.5);
         }
     }
 
@@ -237,6 +238,7 @@ async function get_word(required) {
         word = word_list[word_length][Math.floor(Math.random() * word_list[word_length].length)]
     } 
     else {
+        required = required[0];
         if (required.length === 1) {
             const possible = word_list[required[0]][word_length];
             word = possible[Math.floor(Math.random() * possible.length)];
@@ -274,7 +276,7 @@ async function get_word(required) {
 }
 
 async function get_line(start) {
-    let required = undefined;
+    let required = worst_five[Math.floor(Math.random() * 5)];
     let line = "";
     let word = await get_word(required);;
     let done = false;
@@ -282,6 +284,7 @@ async function get_line(start) {
         line = start + " ";
     }
     while (!done) {
+        required = worst_five[Math.floor(Math.random() * 5)];
         if (line.length + word.length + 1 > per_line && line) {
             done = true;
         }
@@ -290,7 +293,6 @@ async function get_line(start) {
             word = await get_word(required);
         }
     }
-    
     return [line, word];
 }
 

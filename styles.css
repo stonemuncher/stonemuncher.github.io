@@ -36,6 +36,10 @@ body, .words-reel {
     color: grey ;
 }
 
+.incorrect {
+    color: red;
+}
+
 .hidden {
         visibility: hidden;
 }
