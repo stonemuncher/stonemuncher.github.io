@@ -1,6 +1,9 @@
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 const stats = document.getElementById('statscontent');
 
+const GRACE_WORDS = 100;
+
+
 var user_values = {};
 var words_typed = 0;
 var totals_history = [];
@@ -50,7 +53,7 @@ stats.innerText += "\n\n"+resp;
 
 let labels = [];
 if (totals_history) {
-        for (let i = 10; i < words_typed; i+=10) {
+        for (let i = GRACE_WORDS; i < words_typed; i+=10) {
                 labels.push(i);
         }
         console.log(labels);

@@ -4,6 +4,8 @@ const info = document.getElementById('typed');
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
+const GRACE_WORDS = 100;
+
 var user_values = {};
 var totals_history = [];
 var words_typed = 0;
@@ -57,7 +59,7 @@ document.addEventListener("keydown", async ({ key }) => {
                 } else {
                         words_typed += 1;
                         localStorage.setItem("typed", words_typed);
-                        if (words_typed % 10 == 0) {
+                        if (words_typed % 10 == 0 && words_typed >= GRACE_WORDS) {
                                 let total = get_total();
                                 totals_history.push(total.toFixed(3));
                                 localStorage.setItem("history", JSON.stringify(totals_history));
@@ -290,9 +292,15 @@ function get_total() {
 }
 
 async function get_line(start) {
-        let required = worst_five[Math.floor(Math.random() * 5)];
+        let word;
+        if (words_typed > GRACE_WORDS) {
+                let required = worst_five[Math.floor(Math.random() * 5)];
+                word = await get_word(required);
+        } else {
+                word = await get_word();
+        }
+
         let line = "";
-        let word = await get_word(required);;
         let done = false;
         if (start) {
                 line = start + " ";
@@ -304,7 +312,11 @@ async function get_line(start) {
                 }
                 else {
                         line += word + " ";
-                        word = await get_word(required);
+                        if (words_typed > GRACE_WORDS) {
+                                word = await get_word(required);
+                        } else {
+                                word = await get_word();
+                        }
                 }
         }
         return [line, word];
