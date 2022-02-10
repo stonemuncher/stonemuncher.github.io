@@ -4,8 +4,9 @@ const info = document.getElementById('typed');
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
-const GRACE_WORDS = 100;
+const GRACE_WORDS = 0;
 
+var chance_required = 0.5;
 var user_values = {};
 var totals_history = [];
 var words_typed = 0;
@@ -101,13 +102,12 @@ document.addEventListener("keydown", async ({ key }) => {
                 for (const key in user_values) {
                         values.push([key, user_values[key]]);
                 }
-
+         
                 values = reverse_merge(values);
-
+        
                 worst_five = values.slice(0, 5);
+            
         }
-
-        // else if (!key && curr_index >= )
         else if (LETTERS.includes(key) && curr_char.innerText != " ") {
                 user_values[curr_char.innerText] += 0.2;
                 curr_char.classList.add("incorrect");
@@ -120,12 +120,6 @@ async function sigmoid(x) {
 
 async function on_resize() {
         console.log('Resized');
-
-        /*
-        ready = false;
-        per_line = await chars_per_line();
-        ready = true;
-        */
 }
 
 async function save_values() {
@@ -135,6 +129,9 @@ async function save_values() {
         }
 }
 async function load_values() {
+        if (localStorage.getItem("chancerequired")) {
+                chance_required = Number(localStorage.getItem("chancerequired"))/100;
+        }
         if (localStorage.getItem("history")) {
                 totals_history = JSON.parse(localStorage.getItem("history"));
         } else {
@@ -151,6 +148,14 @@ async function load_values() {
                         user_values[letter] = 0.5;
                 }
         }
+        values = []
+        for (const key in user_values) {
+                values.push([key, user_values[key]]);
+        }
+
+        values = reverse_merge(values);
+
+        worst_five = values.slice(0, 5);
 }
 
 async function chars_per_line() {
@@ -182,7 +187,6 @@ async function print_curr_line(line_length) {
         for (let i = 0; i < line_length; i++) {
                 string_out += characters[i].innerText;
         }
-        //console.log(string_out);
 }
 
 async function get_word_list(length) {
@@ -227,12 +231,35 @@ async function finished_loading() {
         ready = true;
 }
 
-async function get_word(required) {
+async function get_word(attempt_unknowns) {
+
+        if (!attempt_unknowns) {
+                let x = Math.random();
+                if (x > chance_required) {
+                        attempt_unknowns = 0;
+                } else {
+                        attempt_unknowns = 5;
+                }
+        }
+        let shuffled = [];
+        let required = [];
+        if (attempt_unknowns) {
+                shuffled = worst_five.sort(() => 0.5 - Math.random());
+        }
+        if (words_typed > GRACE_WORDS && ready) {
+                for (let i = 0; i < attempt_unknowns; i++) {
+                        required.push(shuffled[i][0]);
+                }
+        } else {
+                if (shuffled.length) {
+                        required.push(shuffled[0][0]);
+                }
+        }
+        
         const start = performance.now();
         let word = "";
         let word_length = "";
         const num = Math.floor(Math.random() * 11);
-        //console.log(num);
         if (num <= 0.5) {
                 word_length = "long";
         }
@@ -242,15 +269,15 @@ async function get_word(required) {
         else {
                 word_length = "short";
         }
-        if (!required) {
+        if (!required || required.length == 0) {
                 word = word_list[word_length][Math.floor(Math.random() * word_list[word_length].length)]
         }
         else {
-                required = required[0];
                 if (required.length === 1) {
                         const possible = word_list[required[0]][word_length];
                         word = possible[Math.floor(Math.random() * possible.length)];
                 } else {
+                      
                         let shortest = { "length": undefined, "letter": "" };
                         required.forEach(letter => {
                                 if ((word_list[letter][word_length].length < shortest["length"]) || !shortest["length"]) {
@@ -273,13 +300,14 @@ async function get_word(required) {
                         }
                         else {
                                 // Handle the fact there are no words with the given requirements and word length
-                                alert("none");
+                                required.pop();
+                                return get_word(required.length);
+                      
                         }
                 }
         }
         const end = performance.now();
         const time = end - start;
-        //console.log(word + ' ' + time);
         return word;
 }
 
@@ -293,30 +321,20 @@ function get_total() {
 
 async function get_line(start) {
         let word;
-        if (words_typed > GRACE_WORDS) {
-                let required = worst_five[Math.floor(Math.random() * 5)];
-                word = await get_word(required);
-        } else {
-                word = await get_word();
-        }
-
+        word = await get_word();
         let line = "";
         let done = false;
         if (start) {
                 line = start + " ";
         }
         while (!done) {
-                required = worst_five[Math.floor(Math.random() * 5)];
+                required = [];
                 if (line.length + word.length > per_line && line) {
                         done = true;
                 }
                 else {
                         line += word + " ";
-                        if (words_typed > GRACE_WORDS) {
-                                word = await get_word(required);
-                        } else {
-                                word = await get_word();
-                        }
+                        word = await get_word();
                 }
         }
         return [line, word];

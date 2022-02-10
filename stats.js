@@ -1,7 +1,7 @@
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 const stats = document.getElementById('statscontent');
 
-const GRACE_WORDS = 100;
+const GRACE_WORDS = 0;
 
 
 var user_values = {};
