@@ -5,7 +5,7 @@ const info = document.getElementById('typed');
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
 // Number of words that the user can type before the algorithm starts to adaptively add words to the word-reel
-const GRACE_WORDS = 10;
+const GRACE_WORDS = 100;
 
 // Chance of a newly added word having to contain difficult letters
 var chance_required = 0.5;
