@@ -7,6 +7,12 @@ const GRACE_WORDS = 0;
 var user_values = {};
 var words_typed = 0;
 var totals_history = [];
+
+// Load all information necessary to draw the graph
+// This is first, the Overall values (sum of key difficulties) in the 
+// history array (taken at 10 word intervals since the start of the user's profile)
+// Secondly the number of words typed
+// Thirdly the user_values (individual key difficulties)
 async function load_values() {
         if (localStorage.getItem("history")) {
                 totals_history = JSON.parse(localStorage.getItem("history")).map(function(item) {
@@ -26,7 +32,7 @@ async function load_values() {
         }
 }
 
-
+// Helper function to get the Overall score (sum of key difficulties)
 function get_total() {
         total = 0
         for (const key in user_values) {
@@ -52,7 +58,13 @@ resp = resp.slice(0, -2);
 stats.innerText += "\n\n"+resp;
 
 let labels = [];
+
+// If there is a history set, it must have been loaded so draw the graph
 if (totals_history) {
+
+        // Since the history values are taken every 10 words, we can use the number of words typed and the 
+        // GRACE_WORDS to generate the array of X values that correspond the the number of words typed at the time
+        // the history values were recorded.
         for (let i = GRACE_WORDS; i < words_typed; i+=10) {
                 labels.push(i);
         }
@@ -97,35 +109,3 @@ if (totals_history) {
                 config
               );
 } 
-/*
-const labels = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-      ];
-    
-      const data = {
-        labels: labels,
-        datasets: [{
-          label: 'My First dataset',
-          backgroundColor: 'rgb(255, 99, 132)',
-          borderColor: 'rgb(255, 99, 132)',
-          data: [0, 10, 5, 2, 20, 30, 45],
-        }]
-      };
-    
-      const config = {
-        type: 'line',
-        data: data,
-        options: {
-                responsive: true
-            }
-      };
-
-      const myChart = new Chart(
-        document.getElementById('myChart'),
-        config
-      );*/
