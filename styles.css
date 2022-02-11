@@ -24,7 +24,7 @@ body, .words-reel {
     -khtml-user-select: none; 
     -moz-user-select: none; 
     -ms-user-select: none; 
-    user-select: none; 
+    user-select: none;
 }
 
 #settings {
@@ -76,7 +76,7 @@ body, .words-reel {
         padding: 14px 28px;
         font-size: 16px;
         cursor: pointer;
-        position:absolute;
+        display: inline-block;
       }
 
 .reset {
@@ -92,13 +92,4 @@ body, .words-reel {
         font-size: 1.2vw;
         display: inline;
         max-width: 80%;
-}
-
-.sliderdiv {
-    position:relative;
-    top: 100px;
-}
-
-.slider {
-    width:100%;
 }
