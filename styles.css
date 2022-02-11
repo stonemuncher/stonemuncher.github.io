@@ -76,7 +76,7 @@ body, .words-reel {
         padding: 14px 28px;
         font-size: 16px;
         cursor: pointer;
-        display: inline-block;
+        position:absolute;
       }
 
 .reset {
@@ -92,4 +92,14 @@ body, .words-reel {
         font-size: 1.2vw;
         display: inline;
         max-width: 80%;
+}
+
+.sliderdiv {
+    position:relative;
+    top: 100px;
+    font-size: 24px;
+}
+
+.slider {
+    width:100%;
 }
